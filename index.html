@@ -446,11 +446,13 @@ async function runSequence(){
 }
 
 /* ============ FINAL BREACH SCREEN ============ */
+/* ============ FINAL BREACH SCREEN ============ */
+let rainInterval = setInterval(drawRain, 45); // Rain-Timer speichern
+
 function triggerBreach(){
   rainColorBoost = 0.35;
   vibrate([100,60,100,60,300]);
 
-  // quick strobe before settling — big show moment
   let flashes = 0;
   const strobe = setInterval(()=>{
     whiteFlashPulse(1, 60);
@@ -464,7 +466,7 @@ function triggerBreach(){
     }
   }, 130);
 
-  // ongoing tremor + occasional glitch during breach screen
+  // Tremor-Effekt beschränken
   let pulses = 0;
   const pulseIv = setInterval(()=>{
     stage.classList.remove('shake');
@@ -472,7 +474,12 @@ function triggerBreach(){
     screenGlitch(1.2, 180);
     setTimeout(()=>document.getElementById('breach').classList.remove('shake-hard'), 500);
     pulses++;
-    if(pulses > 7){ clearInterval(pulseIv); }
+    if(pulses > 3){ 
+      clearInterval(pulseIv); 
+      // KILL SWITCH: Nach der Show Matrix-Rain stoppen & WakeLock auflösen, um Akku zu sparen!
+      clearInterval(rainInterval); 
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    }
   }, 1500);
 }
 
