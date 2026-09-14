@@ -1,339 +1,342 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Ensures status bar in mobile browsers turns black -->
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>CRITICAL_SYSTEM_OVERRIDE</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SYSTEM BREACH</title>
+<style>
+  :root{
+    --grid-green:#0aff6e;
+    --grid-green-dim:#0aff6e55;
+    --red:#ff163c;
+    --red-glow:#ff163c99;
+    --bg:#020403;
+    --amber:#ffb020;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-family:'Courier New',monospace;}
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
+  /* ---------- MATRIX RAIN ---------- */
+  #rain{position:fixed;inset:0;z-index:0;opacity:0.55;}
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            background-color: #000000;
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
+  /* ---------- CRT / VIGNETTE ---------- */
+  .crt{
+    position:fixed;inset:0;z-index:20;pointer-events:none;
+    background:
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.75) 100%),
+      repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.35) 3px, rgba(0,0,0,0) 4px);
+    mix-blend-mode:multiply;
+  }
+  .flicker{
+    position:fixed;inset:0;z-index:21;pointer-events:none;
+    background:rgba(10,255,110,0.02);
+    animation:flick 0.15s infinite;
+  }
+  @keyframes flick{
+    0%{opacity:0.3;} 50%{opacity:0.7;} 100%{opacity:0.4;}
+  }
 
-        /* Scanline Overlay for Cyber CRT effect */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.75) 50%
-            ), linear-gradient(
-                90deg,
-                rgba(255, 0, 0, 0.03),
-                rgba(0, 255, 0, 0.01),
-                rgba(0, 0, 255, 0.03)
-            );
-            background-size: 100% 4px, 6px 100%;
-            z-index: 10;
-        }
+  /* ---------- LAYOUT ---------- */
+  .stage{
+    position:fixed;inset:0;z-index:5;
+    display:flex;flex-direction:column;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  }
 
-        /* Glitch Effect on Containers */
-        .glitch-text {
-            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
-            animation: glitch 1.5s infinite linear alternate-reverse;
-        }
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;letter-spacing:2px;color:var(--grid-green);
+    border-bottom:1px solid var(--grid-green-dim);
+    padding-bottom:8px;text-shadow:0 0 6px var(--grid-green);
+    opacity:0;animation:fadeIn 0.6s ease forwards;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--grid-green);box-shadow:0 0 10px var(--grid-green);animation:blink 0.9s infinite alternate;}
 
-        @keyframes glitch {
-            0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
-            20% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
-            40% { text-shadow: 1px 0 0 red, -1px 0 0 blue; }
-            60% { text-shadow: 0 0 8px #00ff00; }
-            80% { text-shadow: -1px 0 0 red, 1px 0 0 blue; }
-            100% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
-        }
+  .id-badge{
+    text-align:center;margin-top:10px;font-size:10px;letter-spacing:4px;color:var(--grid-green-dim);
+    opacity:0;animation:fadeIn 0.6s ease 0.2s forwards;
+  }
 
-        /* Header Bar */
-        .header {
-            border-bottom: 2px solid #00ff00;
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            z-index: 2;
-        }
+  #console{
+    flex:1;margin-top:18px;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    font-size:13px;line-height:1.55;color:var(--grid-green);
+  }
+  .ln{opacity:0;transform:translateY(4px);animation:lnIn 0.18s ease forwards;text-shadow:0 0 4px var(--grid-green);}
+  .ln.warn{color:var(--amber);text-shadow:0 0 4px var(--amber);}
+  .ln.bad{color:var(--red);text-shadow:0 0 6px var(--red);}
+  .ln::before{content:"root@target:~$ ";opacity:0.55;}
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #00ff00;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #00ff00;
-            animation: blink 0.8s infinite alternate;
-        }
+  .bar-wrap{margin:2px 0 6px 0;font-size:12px;color:var(--grid-green-dim);}
+  .bar-track{width:100%;height:6px;background:#0a1a10;border:1px solid var(--grid-green-dim);margin-top:3px;overflow:hidden;}
+  .bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--grid-green),#7dffb8);box-shadow:0 0 8px var(--grid-green);}
 
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.2; }
-        }
+  @keyframes lnIn{to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{to{opacity:1;}}
+  @keyframes blink{from{opacity:1;}to{opacity:0.15;}}
 
-        /* Terminal Console Output */
-        #console {
-            flex-grow: 1;
-            margin: 20px 0;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            overflow: hidden;
-            word-break: break-all;
-            z-index: 2;
-        }
+  /* ---------- BREACH OVERLAY ---------- */
+  #breach{
+    position:fixed;inset:0;z-index:30;
+    display:none;
+    background:rgba(6,0,1,0.92);
+    flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px;
+  }
+  #breach.show{display:flex;animation:slam 0.25s ease;}
+  @keyframes slam{from{opacity:0;transform:scale(1.08);}to{opacity:1;transform:scale(1);}}
 
-        .log-line {
-            margin-bottom: 4px;
-            opacity: 0.9;
-        }
+  .skull{
+    font-size:15vw;line-height:1;color:var(--red);
+    text-shadow:0 0 20px var(--red), 0 0 45px var(--red-glow);
+    animation:pulseSkull 0.7s infinite alternate;
+  }
+  @keyframes pulseSkull{from{transform:scale(1);}to{transform:scale(1.06);}}
 
-        .log-line::before {
-            content: "> ";
-            color: #00ff00;
-        }
+  .breach-title{
+    margin-top:14px;font-size:clamp(22px,7vw,34px);font-weight:700;letter-spacing:3px;
+    color:var(--red);text-shadow:0 0 10px var(--red);
+  }
+  .breach-sub{
+    margin-top:14px;font-size:13px;line-height:1.6;color:#fff;max-width:340px;
+    text-shadow:0 0 6px rgba(255,255,255,0.6);
+    min-height:90px;
+  }
+  .breach-sub .cursor{display:inline-block;width:8px;background:#fff;animation:blink 0.6s infinite;}
 
-        /* Alert Overlay Box */
-        #alert-box {
-            display: none;
-            border: 3px solid #ff0033;
-            background-color: rgba(20, 0, 0, 0.9);
-            color: #ff0033;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 0 20px #ff0033, inset 0 0 15px #ff0033;
-            animation: alertPulse 0.5s infinite alternate;
-            z-index: 5;
-            border-radius: 4px;
-        }
+  .breach-foot{
+    margin-top:22px;font-size:10px;letter-spacing:2px;color:var(--red-glow);
+  }
 
-        @keyframes alertPulse {
-            from { border-color: #ff0033; box-shadow: 0 0 10px #ff0033; }
-            to { border-color: #ff5555; box-shadow: 0 0 25px #ff5555, inset 0 0 20px #ff0033; }
-        }
+  .shake{animation:shakeIt 0.35s;}
+  @keyframes shakeIt{
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-6px,3px);}
+    40%{transform:translate(5px,-4px);}
+    60%{transform:translate(-4px,-2px);}
+    80%{transform:translate(6px,2px);}
+  }
 
-        .alert-title {
-            font-size: 1.4rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
+  .bottombar{
+    display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;
+    color:rgba(10,255,110,0.45);border-top:1px solid var(--grid-green-dim);padding-top:6px;
+    opacity:0;animation:fadeIn 0.6s ease 0.3s forwards;
+  }
 
-        .alert-body {
-            font-size: 0.95rem;
-            color: #ffffff;
-            font-weight: bold;
-            line-height: 1.4;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-        }
-
-        /* Footer System Specs */
-        .footer {
-            border-top: 1px solid rgba(0, 255, 0, 0.3);
-            padding-top: 8px;
-            font-size: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            color: rgba(0, 255, 0, 0.6);
-            z-index: 2;
-        }
-
-        /* Interactive overlay screen for browser audio unlock if auto-play fails */
-        #touch-unlock {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.01);
-            z-index: 99;
-        }
-    </style>
+  #unlock{position:fixed;inset:0;z-index:99;background:transparent;}
+</style>
 </head>
 <body>
-    <div class="scanlines"></div>
-    <div id="touch-unlock"></div>
 
-    <div class="header">
-        <span>[SEC_OVERRIDE_V4.8]</span>
-        <div class="status-dot"></div>
-    </div>
+<canvas id="rain"></canvas>
+<div class="crt"></div>
+<div class="flicker"></div>
+<div id="unlock"></div>
 
-    <div id="console"></div>
+<div class="stage" id="stage">
+  <div class="topbar">
+    <span>[ INTRUSION_KIT // v9.ULI ]</span>
+    <div class="dot"></div>
+  </div>
+  <div class="id-badge">TARGET LOCKED · NFC-CHANNEL · AES BYPASS ENGAGED</div>
 
-    <div id="alert-box">
-        <div class="alert-title glitch-text">⚠️ DEVICE COMPROMISED ⚠️</div>
-        <div class="alert-body" id="alert-text"></div>
-    </div>
+  <div id="console"></div>
 
-    <div class="footer">
-        <span>NODE: NFC_EXPLOIT</span>
-        <span id="timestamp">00:00:00</span>
-    </div>
+  <div class="bottombar">
+    <span>NODE::ULI_MOBILE</span>
+    <span id="clock">00:00:00.0</span>
+  </div>
+</div>
 
-    <script>
-        // Web Audio API Synthesizer (No external audio files required)
-        let audioCtx = null;
+<div id="breach">
+  <div class="skull">☠</div>
+  <div class="breach-title">GERÄT KOMPROMITTIERT</div>
+  <div class="breach-sub" id="breachText"></div>
+  <div class="breach-foot">DIESER HACK WAR NUR EIN SCHERZ · KEINE DATEN WURDEN BERÜHRT</div>
+</div>
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+<script>
+/* ============ MATRIX RAIN ============ */
+const canvas = document.getElementById('rain');
+const ctx = canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize(); addEventListener('resize', resize);
 
-        function playBeep(freq = 800, type = 'sawtooth', duration = 0.08) {
-            try {
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                // Audio context handling fallback
-            }
-        }
+const glyphs = "アイウエオカキクケコサシスセソ01アイウエ0101ΞΦΨΩ01#$%&";
+const fontSize = 16;
+let columns = Math.floor(canvas.width/fontSize);
+let drops = new Array(columns).fill(1);
 
-        function playAlarmSound() {
-            try {
-                if (!audioCtx) return;
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+function drawRain(){
+  ctx.fillStyle = "rgba(2,4,3,0.12)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.font = fontSize+"px monospace";
+  for(let i=0;i<drops.length;i++){
+    const text = glyphs[Math.floor(Math.random()*glyphs.length)];
+    const isHead = Math.random() > 0.92;
+    ctx.fillStyle = isHead ? "#c8ffe0" : "rgba(10,255,110,0.75)";
+    ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+    if(drops[i]*fontSize > canvas.height && Math.random() > 0.975){
+      drops[i] = 0;
+    }
+    drops[i]++;
+  }
+}
+setInterval(drawRain, 45);
 
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(1200, now);
-                osc.frequency.setValueAtTime(600, now + 0.15);
-                osc.frequency.setValueAtTime(1200, now + 0.3);
+/* ============ AUDIO ============ */
+let audioCtx = null;
+function initAudio(){ if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } }
 
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+function beep(freq=700, type='sawtooth', dur=0.05, vol=0.1){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
 
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+function alarmSweep(){
+  if(!audioCtx) return;
+  const now = audioCtx.currentTime;
+  for(let i=0;i<3;i++){
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1400, now + i*0.35);
+    osc.frequency.linearRampToValueAtTime(500, now + i*0.35 + 0.25);
+    gain.gain.setValueAtTime(0.16, now + i*0.35);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.35 + 0.3);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now + i*0.35); osc.stop(now + i*0.35 + 0.3);
+  }
+}
 
-                osc.start();
-                osc.stop(now + 0.5);
-            } catch(e) {}
-        }
+function vibrate(pattern){ if(navigator.vibrate){ navigator.vibrate(pattern); } }
 
-        // Terminal Log Lines
-        const logSequence = [
-            "INITIALIZING NFC HANDSHAKE...",
-            "PAYLOAD EXPLOIT: EXECTUING NDEF_READ",
-            "BYPASSING LOCAL SANDBOX...",
-            "DUMPING MEMORY ADDR [0x8F902A]...",
-            "EXTRACTING DEVICE CREDENTIALS...",
-            "ELEVATING PRIVILEGES TO ROOT...",
-            "INJECTING PAYLOAD INTO SYSTEM MEMORY...",
-            "ESTABLISHING REMOTE BACKDOOR...",
-            "OVERRIDE SUCCESSFUL."
-        ];
+/* ============ CLOCK ============ */
+setInterval(()=>{
+  const n = new Date();
+  document.getElementById('clock').innerText =
+    n.toTimeString().split(' ')[0] + "." + Math.floor(n.getMilliseconds()/100);
+}, 100);
 
-        const consoleElem = document.getElementById("console");
-        const alertBox = document.getElementById("alert-box");
-        const alertText = document.getElementById("alert-text");
-        const timestampElem = document.getElementById("timestamp");
+/* ============ TERMINAL SEQUENCE ============ */
+const consoleEl = document.getElementById('console');
+const stage = document.getElementById('stage');
 
-        // Update Clock
-        setInterval(() => {
-            const now = new Date();
-            timestampElem.innerText = now.toTimeString().split(' ')[0] + "." + Math.floor(now.getMilliseconds() / 100);
-        }, 100);
+const sequence = [
+  {text:"nfc.scan() → device found [MOBILE-CLIENT]", type:"ln"},
+  {text:"handshake initiated on channel 0x4F", type:"ln"},
+  {text:"probing open ports... 3 found", type:"ln"},
+  {text:"firmware version leaked: unverifiable", type:"warn"},
+  {bar:"bypassing sandbox isolation"},
+  {text:"sandbox isolation: DISABLED", type:"bad"},
+  {text:"escalating privileges...", type:"ln"},
+  {bar:"dumping memory block 0x8F902A"},
+  {text:"credential cache located", type:"warn"},
+  {bar:"injecting payload"},
+  {text:"payload injected — persistence hook set", type:"bad"},
+  {text:"disabling local defenses...", type:"ln"},
+  {text:"root access: GRANTED", type:"bad"},
+];
 
-        // Sequence Runner
-        let currentStep = 0;
+let step = 0;
 
-        function runHackerSequence() {
-            initAudio();
-            
-            if (currentStep < logSequence.length) {
-                const line = document.createElement("div");
-                line.className = "log-line glitch-text";
-                line.innerText = logSequence[currentStep];
-                consoleElem.appendChild(line);
-                
-                // Sound effect per line
-                playBeep(600 + (currentStep * 100), 'sawtooth', 0.06);
+function addLine(item){
+  return new Promise(resolve=>{
+    if(item.bar){
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap ln';
+      wrap.innerHTML = item.bar.toUpperCase()+' <span class="pct">0%</span><div class="bar-track"><div class="bar-fill"></div></div>';
+      consoleEl.appendChild(wrap);
+      const fill = wrap.querySelector('.bar-fill');
+      const pct = wrap.querySelector('.pct');
+      let p = 0;
+      const iv = setInterval(()=>{
+        p += Math.random()*18 + 8;
+        if(p >= 100){ p = 100; clearInterval(iv); resolve(); }
+        fill.style.width = p+'%';
+        pct.textContent = Math.floor(p)+'%';
+        beep(500 + p*4, 'triangle', 0.03, 0.05);
+      }, 90);
+    } else {
+      const line = document.createElement('div');
+      line.className = 'ln ' + (item.type||'');
+      line.textContent = item.text;
+      consoleEl.appendChild(line);
+      beep(600 + step*40, 'sawtooth', 0.05, 0.06);
+      if(item.type === 'bad'){
+        stage.classList.add('shake');
+        vibrate(40);
+        setTimeout(()=>stage.classList.remove('shake'), 350);
+      }
+      resolve();
+    }
+    while(consoleEl.children.length > 9){ consoleEl.removeChild(consoleEl.firstChild); }
+  });
+}
 
-                // Auto Scroll
-                consoleElem.scrollTop = consoleElem.scrollHeight;
+async function runSequence(){
+  initAudio();
+  for(step=0; step<sequence.length; step++){
+    await addLine(sequence[step]);
+    await new Promise(r=>setTimeout(r, 90 + Math.random()*160));
+  }
+  setTimeout(triggerBreach, 500);
+}
 
-                currentStep++;
-                setTimeout(runHackerSequence, Math.random() * 150 + 100);
-            } else {
-                // Show Final Alert Box
-                setTimeout(triggerAlert, 400);
-            }
-        }
+/* ============ FINAL BREACH SCREEN ============ */
+function triggerBreach(){
+  alarmSweep();
+  vibrate([100,60,100,60,300]);
+  document.getElementById('breach').classList.add('show');
 
-        function triggerAlert() {
-            playAlarmSound();
-            alertBox.style.display = "block";
-            
-            const message = "WARNING: UNPROTECTED NFC INTERFACE DETECTED.\n\nULI HAS TAKEN CONTROL OF THIS SESSION.";
-            let charIndex = 0;
-            
-            function typeAlert() {
-                if (charIndex < message.length) {
-                    const char = message.charAt(charIndex);
-                    alertText.innerText += char;
-                    if (char !== ' ' && char !== '\n') {
-                        playBeep(1000, 'square', 0.03);
-                    }
-                    charIndex++;
-                    setTimeout(typeAlert, 35);
-                }
-            }
-            
-            typeAlert();
-        }
+  const msg = "Über die NFC-Schnittstelle wurde eine ungesicherte Verbindung erkannt.\n\nULI hat die Kontrolle über dieses Gerät übernommen.";
+  const target = document.getElementById('breachText');
+  let i = 0;
+  target.innerHTML = '<span class="cursor">&nbsp;</span>';
 
-        // Auto Start on Load or First Touch
-        window.onload = () => {
-            setTimeout(runHackerSequence, 300);
-        };
+  function type(){
+    if(i < msg.length){
+      const ch = msg.charAt(i);
+      target.innerHTML = msg.slice(0, i+1).replace(/\n/g,'<br>') + '<span class="cursor">&nbsp;</span>';
+      if(ch !== ' ' && ch !== '\n'){ beep(1100, 'square', 0.025, 0.07); }
+      i++;
+      setTimeout(type, 28);
+    }
+  }
+  type();
 
-        document.getElementById("touch-unlock").addEventListener("click", () => {
-            initAudio();
-            document.getElementById("touch-unlock").remove();
-        });
-    </script>
+  // periodic alarm pulses to keep tension up
+  let pulses = 0;
+  const pulseIv = setInterval(()=>{
+    stage.classList.add('shake');
+    setTimeout(()=>stage.classList.remove('shake'), 300);
+    beep(1300, 'square', 0.06, 0.05);
+    pulses++;
+    if(pulses > 6){ clearInterval(pulseIv); }
+  }, 1400);
+}
+
+/* ============ START ============ */
+window.addEventListener('load', ()=>{
+  setTimeout(runSequence, 500);
+});
+document.getElementById('unlock').addEventListener('click', ()=>{
+  initAudio();
+  document.getElementById('unlock').remove();
+});
+document.getElementById('unlock').addEventListener('touchstart', ()=>{
+  initAudio();
+});
+</script>
 </body>
 </html>
