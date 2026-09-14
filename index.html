@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Ensures status bar in mobile browsers turns black -->
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>CRITICAL_SYSTEM_OVERRIDE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        /* Scanline Overlay for Cyber CRT effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.75) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            z-index: 10;
+        }
+
+        /* Glitch Effect on Containers */
+        .glitch-text {
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
+            animation: glitch 1.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+            20% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
+            40% { text-shadow: 1px 0 0 red, -1px 0 0 blue; }
+            60% { text-shadow: 0 0 8px #00ff00; }
+            80% { text-shadow: -1px 0 0 red, 1px 0 0 blue; }
+            100% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+        }
+
+        /* Header Bar */
+        .header {
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 2;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #00ff00;
+            animation: blink 0.8s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.2; }
+        }
+
+        /* Terminal Console Output */
+        #console {
+            flex-grow: 1;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            word-break: break-all;
+            z-index: 2;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+
+        .log-line::before {
+            content: "> ";
+            color: #00ff00;
+        }
+
+        /* Alert Overlay Box */
+        #alert-box {
+            display: none;
+            border: 3px solid #ff0033;
+            background-color: rgba(20, 0, 0, 0.9);
+            color: #ff0033;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px #ff0033, inset 0 0 15px #ff0033;
+            animation: alertPulse 0.5s infinite alternate;
+            z-index: 5;
+            border-radius: 4px;
+        }
+
+        @keyframes alertPulse {
+            from { border-color: #ff0033; box-shadow: 0 0 10px #ff0033; }
+            to { border-color: #ff5555; box-shadow: 0 0 25px #ff5555, inset 0 0 20px #ff0033; }
+        }
+
+        .alert-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .alert-body {
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: bold;
+            line-height: 1.4;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Footer System Specs */
+        .footer {
+            border-top: 1px solid rgba(0, 255, 0, 0.3);
+            padding-top: 8px;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            color: rgba(0, 255, 0, 0.6);
+            z-index: 2;
+        }
+
+        /* Interactive overlay screen for browser audio unlock if auto-play fails */
+        #touch-unlock {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.01);
+            z-index: 99;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div id="touch-unlock"></div>
+
+    <div class="header">
+        <span>[SEC_OVERRIDE_V4.8]</span>
+        <div class="status-dot"></div>
+    </div>
+
+    <div id="console"></div>
+
+    <div id="alert-box">
+        <div class="alert-title glitch-text">⚠️ DEVICE COMPROMISED ⚠️</div>
+        <div class="alert-body" id="alert-text"></div>
+    </div>
+
+    <div class="footer">
+        <span>NODE: NFC_EXPLOIT</span>
+        <span id="timestamp">00:00:00</span>
+    </div>
+
+    <script>
+        // Web Audio API Synthesizer (No external audio files required)
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(freq = 800, type = 'sawtooth', duration = 0.08) {
+            try {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Audio context handling fallback
+            }
+        }
+
+        function playAlarmSound() {
+            try {
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.setValueAtTime(600, now + 0.15);
+                osc.frequency.setValueAtTime(1200, now + 0.3);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(now + 0.5);
+            } catch(e) {}
+        }
+
+        // Terminal Log Lines
+        const logSequence = [
+            "INITIALIZING NFC HANDSHAKE...",
+            "PAYLOAD EXPLOIT: EXECTUING NDEF_READ",
+            "BYPASSING LOCAL SANDBOX...",
+            "DUMPING MEMORY ADDR [0x8F902A]...",
+            "EXTRACTING DEVICE CREDENTIALS...",
+            "ELEVATING PRIVILEGES TO ROOT...",
+            "INJECTING PAYLOAD INTO SYSTEM MEMORY...",
+            "ESTABLISHING REMOTE BACKDOOR...",
+            "OVERRIDE SUCCESSFUL."
+        ];
+
+        const consoleElem = document.getElementById("console");
+        const alertBox = document.getElementById("alert-box");
+        const alertText = document.getElementById("alert-text");
+        const timestampElem = document.getElementById("timestamp");
+
+        // Update Clock
+        setInterval(() => {
+            const now = new Date();
+            timestampElem.innerText = now.toTimeString().split(' ')[0] + "." + Math.floor(now.getMilliseconds() / 100);
+        }, 100);
+
+        // Sequence Runner
+        let currentStep = 0;
+
+        function runHackerSequence() {
+            initAudio();
+            
+            if (currentStep < logSequence.length) {
+                const line = document.createElement("div");
+                line.className = "log-line glitch-text";
+                line.innerText = logSequence[currentStep];
+                consoleElem.appendChild(line);
+                
+                // Sound effect per line
+                playBeep(600 + (currentStep * 100), 'sawtooth', 0.06);
+
+                // Auto Scroll
+                consoleElem.scrollTop = consoleElem.scrollHeight;
+
+                currentStep++;
+                setTimeout(runHackerSequence, Math.random() * 150 + 100);
+            } else {
+                // Show Final Alert Box
+                setTimeout(triggerAlert, 400);
+            }
+        }
+
+        function triggerAlert() {
+            playAlarmSound();
+            alertBox.style.display = "block";
+            
+            const message = "WARNING: UNPROTECTED NFC INTERFACE DETECTED.\n\nULI HAS TAKEN CONTROL OF THIS SESSION.";
+            let charIndex = 0;
+            
+            function typeAlert() {
+                if (charIndex < message.length) {
+                    const char = message.charAt(charIndex);
+                    alertText.innerText += char;
+                    if (char !== ' ' && char !== '\n') {
+                        playBeep(1000, 'square', 0.03);
+                    }
+                    charIndex++;
+                    setTimeout(typeAlert, 35);
+                }
+            }
+            
+            typeAlert();
+        }
+
+        // Auto Start on Load or First Touch
+        window.onload = () => {
+            setTimeout(runHackerSequence, 300);
+        };
+
+        document.getElementById("touch-unlock").addEventListener("click", () => {
+            initAudio();
+            document.getElementById("touch-unlock").remove();
+        });
+    </script>
+</body>
+</html>
