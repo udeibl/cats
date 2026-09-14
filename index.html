@@ -2,10 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>SYSTEM BREACH</title>
 <style>
   :root{
@@ -18,6 +19,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
   html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-family:'Courier New',monospace;}
+  body{height:100dvh;}
 
   /* ---------- MATRIX RAIN ---------- */
   #rain{position:fixed;inset:0;z-index:0;opacity:0.55;}
@@ -35,8 +37,21 @@
     background:rgba(10,255,110,0.02);
     animation:flick 0.15s infinite;
   }
-  @keyframes flick{
-    0%{opacity:0.3;} 50%{opacity:0.7;} 100%{opacity:0.4;}
+  @keyframes flick{0%{opacity:0.3;}50%{opacity:0.7;}100%{opacity:0.4;}}
+
+  /* ---------- GLITCH SLICE LAYER ---------- */
+  #glitchLayer{
+    position:fixed;inset:0;z-index:22;pointer-events:none;
+    mix-blend-mode:screen;opacity:0;
+  }
+  #glitchLayer.active{opacity:1;}
+  .slice{
+    position:absolute;left:0;width:100%;overflow:hidden;background:inherit;
+  }
+
+  /* full white flash */
+  #whiteFlash{
+    position:fixed;inset:0;z-index:40;background:#fff;opacity:0;pointer-events:none;
   }
 
   /* ---------- LAYOUT ---------- */
@@ -55,6 +70,13 @@
   }
   .dot{width:8px;height:8px;border-radius:50%;background:var(--grid-green);box-shadow:0 0 10px var(--grid-green);animation:blink 0.9s infinite alternate;}
 
+  .cam-indicator{
+    display:none;align-items:center;gap:5px;font-size:10px;color:var(--red);
+    text-shadow:0 0 6px var(--red);letter-spacing:1px;
+  }
+  .cam-indicator.show{display:flex;}
+  .cam-dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 0.5s infinite alternate;}
+
   .id-badge{
     text-align:center;margin-top:10px;font-size:10px;letter-spacing:4px;color:var(--grid-green-dim);
     opacity:0;animation:fadeIn 0.6s ease 0.2s forwards;
@@ -68,7 +90,9 @@
   .ln{opacity:0;transform:translateY(4px);animation:lnIn 0.18s ease forwards;text-shadow:0 0 4px var(--grid-green);}
   .ln.warn{color:var(--amber);text-shadow:0 0 4px var(--amber);}
   .ln.bad{color:var(--red);text-shadow:0 0 6px var(--red);}
+  .ln.file{color:rgba(10,255,110,0.55);font-size:11px;}
   .ln::before{content:"root@target:~$ ";opacity:0.55;}
+  .ln.file::before{content:"";}
 
   .bar-wrap{margin:2px 0 6px 0;font-size:12px;color:var(--grid-green-dim);}
   .bar-track{width:100%;height:6px;background:#0a1a10;border:1px solid var(--grid-green-dim);margin-top:3px;overflow:hidden;}
@@ -86,20 +110,43 @@
     flex-direction:column;align-items:center;justify-content:center;
     text-align:center;padding:24px;
   }
-  #breach.show{display:flex;animation:slam 0.25s ease;}
-  @keyframes slam{from{opacity:0;transform:scale(1.08);}to{opacity:1;transform:scale(1);}}
+  #breach.show{display:flex;}
+  #breach.slam{animation:slam 0.25s ease;}
+  @keyframes slam{from{opacity:0;transform:scale(1.1);}to{opacity:1;transform:scale(1);}}
 
   .skull{
     font-size:15vw;line-height:1;color:var(--red);
     text-shadow:0 0 20px var(--red), 0 0 45px var(--red-glow);
     animation:pulseSkull 0.7s infinite alternate;
+    position:relative;
   }
   @keyframes pulseSkull{from{transform:scale(1);}to{transform:scale(1.06);}}
 
   .breach-title{
     margin-top:14px;font-size:clamp(22px,7vw,34px);font-weight:700;letter-spacing:3px;
     color:var(--red);text-shadow:0 0 10px var(--red);
+    position:relative;
   }
+  /* RGB split glitch on the title text */
+  .breach-title::before, .breach-title::after{
+    content:attr(data-text);position:absolute;left:0;top:0;width:100%;
+    clip-path:inset(0 0 0 0);
+  }
+  .breach-title::before{color:#00fff2;left:-2px;animation:rgbShift1 2.6s infinite linear;}
+  .breach-title::after{color:#ff00c8;left:2px;animation:rgbShift2 2.2s infinite linear;}
+  @keyframes rgbShift1{
+    0%,90%,100%{clip-path:inset(0 0 0 0);opacity:0;}
+    91%{clip-path:inset(10% 0 60% 0);opacity:0.8;}
+    93%{clip-path:inset(60% 0 5% 0);opacity:0.8;}
+    95%{opacity:0;}
+  }
+  @keyframes rgbShift2{
+    0%,88%,100%{clip-path:inset(0 0 0 0);opacity:0;}
+    89%{clip-path:inset(70% 0 5% 0);opacity:0.8;}
+    92%{clip-path:inset(5% 0 70% 0);opacity:0.8;}
+    94%{opacity:0;}
+  }
+
   .breach-sub{
     margin-top:14px;font-size:13px;line-height:1.6;color:#fff;max-width:340px;
     text-shadow:0 0 6px rgba(255,255,255,0.6);
@@ -107,8 +154,14 @@
   }
   .breach-sub .cursor{display:inline-block;width:8px;background:#fff;animation:blink 0.6s infinite;}
 
+  .breach-data{
+    margin-top:10px;font-size:10px;letter-spacing:1px;color:var(--red-glow);
+    display:flex;flex-direction:column;gap:2px;opacity:0;
+  }
+  .breach-data.show{opacity:1;transition:opacity 0.4s ease;}
+
   .breach-foot{
-    margin-top:22px;font-size:10px;letter-spacing:2px;color:var(--red-glow);
+    margin-top:20px;font-size:10px;letter-spacing:2px;color:var(--red-glow);
   }
 
   .shake{animation:shakeIt 0.35s;}
@@ -119,6 +172,15 @@
     60%{transform:translate(-4px,-2px);}
     80%{transform:translate(6px,2px);}
   }
+  .shake-hard{animation:shakeHard 0.5s;}
+  @keyframes shakeHard{
+    0%,100%{transform:translate(0,0) rotate(0);}
+    15%{transform:translate(-10px,6px) rotate(-0.6deg);}
+    30%{transform:translate(9px,-8px) rotate(0.6deg);}
+    45%{transform:translate(-8px,-5px) rotate(-0.4deg);}
+    60%{transform:translate(10px,4px) rotate(0.5deg);}
+    75%{transform:translate(-6px,7px) rotate(-0.3deg);}
+  }
 
   .bottombar{
     display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;
@@ -126,7 +188,7 @@
     opacity:0;animation:fadeIn 0.6s ease 0.3s forwards;
   }
 
-  #unlock{position:fixed;inset:0;z-index:99;background:transparent;}
+
 </style>
 </head>
 <body>
@@ -134,11 +196,13 @@
 <canvas id="rain"></canvas>
 <div class="crt"></div>
 <div class="flicker"></div>
-<div id="unlock"></div>
+<div id="glitchLayer"></div>
+<div id="whiteFlash"></div>
 
 <div class="stage" id="stage">
   <div class="topbar">
     <span>[ INTRUSION_KIT // v9.ULI ]</span>
+    <div class="cam-indicator" id="camIndicator"><div class="cam-dot"></div>CAM ACTIVE</div>
     <div class="dot"></div>
   </div>
   <div class="id-badge">TARGET LOCKED · NFC-CHANNEL · AES BYPASS ENGAGED</div>
@@ -153,8 +217,9 @@
 
 <div id="breach">
   <div class="skull">☠</div>
-  <div class="breach-title">GERÄT KOMPROMITTIERT</div>
+  <div class="breach-title" data-text="GERÄT KOMPROMITTIERT">GERÄT KOMPROMITTIERT</div>
   <div class="breach-sub" id="breachText"></div>
+  <div class="breach-data" id="breachData"></div>
   <div class="breach-foot">DIESER HACK WAR NUR EIN SCHERZ · KEINE DATEN WURDEN BERÜHRT</div>
 </div>
 
@@ -169,6 +234,7 @@ const glyphs = "アイウエオカキクケコサシスセソ01アイウエ0101�
 const fontSize = 16;
 let columns = Math.floor(canvas.width/fontSize);
 let drops = new Array(columns).fill(1);
+let rainColorBoost = 0; // rises during breach for a redder rain
 
 function drawRain(){
   ctx.fillStyle = "rgba(2,4,3,0.12)";
@@ -177,49 +243,44 @@ function drawRain(){
   for(let i=0;i<drops.length;i++){
     const text = glyphs[Math.floor(Math.random()*glyphs.length)];
     const isHead = Math.random() > 0.92;
-    ctx.fillStyle = isHead ? "#c8ffe0" : "rgba(10,255,110,0.75)";
+    if(isHead){ ctx.fillStyle = "#c8ffe0"; }
+    else if(rainColorBoost > 0 && Math.random() < rainColorBoost){ ctx.fillStyle = "rgba(255,22,60,0.65)"; }
+    else{ ctx.fillStyle = "rgba(10,255,110,0.75)"; }
     ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-    if(drops[i]*fontSize > canvas.height && Math.random() > 0.975){
-      drops[i] = 0;
-    }
+    if(drops[i]*fontSize > canvas.height && Math.random() > 0.975){ drops[i] = 0; }
     drops[i]++;
   }
 }
 setInterval(drawRain, 45);
 
-/* ============ AUDIO ============ */
-let audioCtx = null;
-function initAudio(){ if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } }
+/* ============ VIBRATION ============ */
+function vibrate(pattern){ if(navigator.vibrate){ navigator.vibrate(pattern); } }
 
-function beep(freq=700, type='sawtooth', dur=0.05, vol=0.1){
-  if(!audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.start(); osc.stop(audioCtx.currentTime + dur);
+/* ============ WAKE LOCK (screen stays on) ============ */
+let wakeLock = null;
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); }
+  }catch(e){ /* not supported / denied, fail silently */ }
 }
+document.addEventListener('visibilitychange', async () => {
+  if(wakeLock !== null && document.visibilityState === 'visible'){ await requestWakeLock(); }
+});
 
-function alarmSweep(){
-  if(!audioCtx) return;
-  const now = audioCtx.currentTime;
-  for(let i=0;i<3;i++){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(1400, now + i*0.35);
-    osc.frequency.linearRampToValueAtTime(500, now + i*0.35 + 0.25);
-    gain.gain.setValueAtTime(0.16, now + i*0.35);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.35 + 0.3);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(now + i*0.35); osc.stop(now + i*0.35 + 0.3);
+/* ============ FULLSCREEN ============ */
+function requestFS(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if(req){
+    req.call(el).catch(()=>{ /* denied or unsupported (e.g. iOS Safari) */ });
+  }
+  // iOS Safari address-bar hide trick (best effort, not true fullscreen)
+  setTimeout(()=>window.scrollTo(0,1), 100);
+  // lock orientation to portrait where supported (mostly Android, needs fullscreen first)
+  if(screen.orientation && screen.orientation.lock){
+    screen.orientation.lock('portrait').catch(()=>{});
   }
 }
-
-function vibrate(pattern){ if(navigator.vibrate){ navigator.vibrate(pattern); } }
 
 /* ============ CLOCK ============ */
 setInterval(()=>{
@@ -228,9 +289,64 @@ setInterval(()=>{
     n.toTimeString().split(' ')[0] + "." + Math.floor(n.getMilliseconds()/100);
 }, 100);
 
+/* ============ SCREEN GLITCH SLICES ============ */
+function screenGlitch(intensity=1, duration=220){
+  const layer = document.getElementById('glitchLayer');
+  layer.innerHTML = '';
+  layer.classList.add('active');
+  const sliceCount = 4 + Math.floor(Math.random()*4*intensity);
+  for(let i=0;i<sliceCount;i++){
+    const h = 6 + Math.random()*30;
+    const top = Math.random()*100;
+    const off = (Math.random()-0.5) * 40 * intensity;
+    const s = document.createElement('div');
+    s.className = 'slice';
+    s.style.top = top+'%';
+    s.style.height = h+'px';
+    s.style.transform = `translateX(${off}px)`;
+    s.style.background = Math.random() > 0.5
+      ? 'rgba(10,255,110,0.15)'
+      : 'rgba(255,22,60,0.18)';
+    layer.appendChild(s);
+  }
+  setTimeout(()=>{ layer.classList.remove('active'); layer.innerHTML=''; }, duration);
+}
+
+function whiteFlashPulse(peakOpacity=0.85, duration=90){
+  const f = document.getElementById('whiteFlash');
+  f.style.transition = 'none';
+  f.style.opacity = peakOpacity;
+  requestAnimationFrame(()=>{
+    f.style.transition = `opacity ${duration}ms ease`;
+    f.style.opacity = 0;
+  });
+}
+
+/* ============ FAKE EXFIL FILE LIST ============ */
+const fakeFiles = [
+  "IMG_2291.jpg  [2.4MB]",
+  "contacts.vcf  [61KB]",
+  "chat_backup.db  [18.2MB]",
+  "loc_history.json  [4KB]",
+  "IMG_2304.jpg  [3.1MB]",
+  "voice_note_07.m4a  [890KB]",
+  "calendar.ics  [12KB]",
+  "browser_cache.dat  [96MB]",
+];
+
+function randIP(){
+  return `${10+Math.floor(Math.random()*90)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+}
+function randCoord(){
+  const lat = (49 + Math.random()*2).toFixed(4);
+  const lon = (11 + Math.random()*1.5).toFixed(4);
+  return `${lat}°N, ${lon}°E`;
+}
+
 /* ============ TERMINAL SEQUENCE ============ */
 const consoleEl = document.getElementById('console');
 const stage = document.getElementById('stage');
+const camIndicator = document.getElementById('camIndicator');
 
 const sequence = [
   {text:"nfc.scan() → device found [MOBILE-CLIENT]", type:"ln"},
@@ -238,14 +354,16 @@ const sequence = [
   {text:"probing open ports... 3 found", type:"ln"},
   {text:"firmware version leaked: unverifiable", type:"warn"},
   {bar:"bypassing sandbox isolation"},
-  {text:"sandbox isolation: DISABLED", type:"bad"},
+  {text:"sandbox isolation: DISABLED", type:"bad", glitch:true},
   {text:"escalating privileges...", type:"ln"},
   {bar:"dumping memory block 0x8F902A"},
   {text:"credential cache located", type:"warn"},
+  {cam:true},
+  {files:true},
   {bar:"injecting payload"},
-  {text:"payload injected — persistence hook set", type:"bad"},
+  {text:"payload injected — persistence hook set", type:"bad", glitch:true},
   {text:"disabling local defenses...", type:"ln"},
-  {text:"root access: GRANTED", type:"bad"},
+  {text:"root access: GRANTED", type:"bad", flash:true},
 ];
 
 let step = 0;
@@ -265,40 +383,90 @@ function addLine(item){
         if(p >= 100){ p = 100; clearInterval(iv); resolve(); }
         fill.style.width = p+'%';
         pct.textContent = Math.floor(p)+'%';
-        beep(500 + p*4, 'triangle', 0.03, 0.05);
       }, 90);
-    } else {
-      const line = document.createElement('div');
-      line.className = 'ln ' + (item.type||'');
-      line.textContent = item.text;
-      consoleEl.appendChild(line);
-      beep(600 + step*40, 'sawtooth', 0.05, 0.06);
-      if(item.type === 'bad'){
-        stage.classList.add('shake');
-        vibrate(40);
-        setTimeout(()=>stage.classList.remove('shake'), 350);
-      }
-      resolve();
+      return;
     }
+    if(item.cam){
+      camIndicator.classList.add('show');
+      const line = document.createElement('div');
+      line.className = 'ln warn';
+      line.textContent = 'front camera access requested...';
+      consoleEl.appendChild(line);
+      whiteFlashPulse(0.6, 120);
+      vibrate(30);
+      setTimeout(resolve, 500);
+      return;
+    }
+    if(item.files){
+      let i = 0;
+      const iv = setInterval(()=>{
+        const line = document.createElement('div');
+        line.className = 'ln file';
+        line.textContent = '↳ ' + fakeFiles[i % fakeFiles.length];
+        consoleEl.appendChild(line);
+        while(consoleEl.children.length > 9){ consoleEl.removeChild(consoleEl.firstChild); }
+        i++;
+        if(i >= fakeFiles.length){ clearInterval(iv); resolve(); }
+      }, 110);
+      return;
+    }
+    // normal text line
+    const line = document.createElement('div');
+    line.className = 'ln ' + (item.type||'');
+    line.textContent = item.text;
+    consoleEl.appendChild(line);
+    if(item.type === 'bad'){
+      stage.classList.add('shake');
+      vibrate(40);
+      setTimeout(()=>stage.classList.remove('shake'), 350);
+    }
+    if(item.glitch){ screenGlitch(1, 180); }
+    if(item.flash){ whiteFlashPulse(0.9, 140); }
+    resolve();
     while(consoleEl.children.length > 9){ consoleEl.removeChild(consoleEl.firstChild); }
   });
 }
 
 async function runSequence(){
-  initAudio();
   for(step=0; step<sequence.length; step++){
     await addLine(sequence[step]);
     await new Promise(r=>setTimeout(r, 90 + Math.random()*160));
   }
-  setTimeout(triggerBreach, 500);
+  setTimeout(triggerBreach, 450);
 }
 
 /* ============ FINAL BREACH SCREEN ============ */
 function triggerBreach(){
-  alarmSweep();
+  rainColorBoost = 0.35;
   vibrate([100,60,100,60,300]);
-  document.getElementById('breach').classList.add('show');
 
+  // quick strobe before settling — big show moment
+  let flashes = 0;
+  const strobe = setInterval(()=>{
+    whiteFlashPulse(1, 60);
+    screenGlitch(1.6, 150);
+    flashes++;
+    if(flashes >= 3){
+      clearInterval(strobe);
+      const breach = document.getElementById('breach');
+      breach.classList.add('show','slam');
+      startBreachTyping();
+    }
+  }, 130);
+
+  // ongoing tremor + occasional glitch during breach screen
+  let pulses = 0;
+  const pulseIv = setInterval(()=>{
+    stage.classList.remove('shake');
+    document.getElementById('breach').classList.add('shake-hard');
+    screenGlitch(1.2, 180);
+    setTimeout(()=>document.getElementById('breach').classList.remove('shake-hard'), 500);
+    pulses++;
+    if(pulses > 7){ clearInterval(pulseIv); }
+  }, 1500);
+}
+
+function startBreachTyping(){
   const msg = "Über die NFC-Schnittstelle wurde eine ungesicherte Verbindung erkannt.\n\nULI hat die Kontrolle über dieses Gerät übernommen.";
   const target = document.getElementById('breachText');
   let i = 0;
@@ -306,37 +474,44 @@ function triggerBreach(){
 
   function type(){
     if(i < msg.length){
-      const ch = msg.charAt(i);
       target.innerHTML = msg.slice(0, i+1).replace(/\n/g,'<br>') + '<span class="cursor">&nbsp;</span>';
-      if(ch !== ' ' && ch !== '\n'){ beep(1100, 'square', 0.025, 0.07); }
       i++;
-      setTimeout(type, 28);
+      setTimeout(type, 26);
+    } else {
+      setTimeout(showFakeData, 400);
     }
   }
   type();
-
-  // periodic alarm pulses to keep tension up
-  let pulses = 0;
-  const pulseIv = setInterval(()=>{
-    stage.classList.add('shake');
-    setTimeout(()=>stage.classList.remove('shake'), 300);
-    beep(1300, 'square', 0.06, 0.05);
-    pulses++;
-    if(pulses > 6){ clearInterval(pulseIv); }
-  }, 1400);
 }
 
-/* ============ START ============ */
+function showFakeData(){
+  const el = document.getElementById('breachData');
+  el.innerHTML =
+    `EXFIL_IP: ${randIP()}<br>COORDS: ${randCoord()}<br>FILES_TAKEN: ${fakeFiles.length}/∞`;
+  el.classList.add('show');
+}
+
+/* ============ AUTO START ============ */
+// Fullscreen/orientation-lock need a user gesture in most browsers and will
+// silently fail here without one — that's expected, the sequence still runs.
 window.addEventListener('load', ()=>{
-  setTimeout(runSequence, 500);
+  requestFS();
+  requestWakeLock();
+  setTimeout(runSequence, 400);
 });
-document.getElementById('unlock').addEventListener('click', ()=>{
-  initAudio();
-  document.getElementById('unlock').remove();
-});
-document.getElementById('unlock').addEventListener('touchstart', ()=>{
-  initAudio();
-});
+
+// Best-effort: if the very first tap/scroll on the page happens to land
+// early, use it to retry fullscreen (works on some Android browsers even
+// without a dedicated button).
+let fsRetried = false;
+function retryFSOnce(){
+  if(fsRetried) return;
+  fsRetried = true;
+  requestFS();
+  requestWakeLock();
+}
+document.addEventListener('touchstart', retryFSOnce, {once:true, passive:true});
+document.addEventListener('click', retryFSOnce, {once:true});
 </script>
 </body>
 </html>
